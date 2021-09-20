@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+
+import subprocess
+import sys
+from datetime import date
+from pathlib import Path
+
+HOME = Path.home()
+NOTES_PATH = Path(f"{HOME}/.notes")
+CURRENT_DATE = date.today().strftime("%Y-%m-%d")
+FILENAME = Path(f"{NOTES_PATH}/{CURRENT_DATE}.md")
+EDITOR = "vim"
+
+
+def init() -> None:
+    """
+    Creates the notes file if it's not present.
+
+    The notes file is named Y-m-d.md for the current date.
+
+    :return:
+    """
+    if not NOTES_PATH.exists():
+        print("The notes folder is not found, creating...")
+        NOTES_PATH.mkdir(mode=0o755)
+
+    if not FILENAME.exists():
+        print("Today's notes file not found, creating...")
+        FILENAME.touch(mode=0o755)
+
+
+def run(filename: Path = None) -> None:
+    """
+    Opens the given note file in the defined editor.
+
+    :param filename: A Path to open.
+
+    :return:
+    """
+    f = filename.absolute() if filename else FILENAME.absolute()
+    print(f"Opening {f} in {EDITOR}...")
+    subprocess.run([EDITOR, f])
+
+
+def _get_notes() -> dict:
+    """
+    Returns a dictionary of note files, indexed by integer number starting from 0.
+
+    :return: A dictionary of indexed files.
+    """
+    note_files = NOTES_PATH.glob("*.md")
+    return {idx: note_file for idx, note_file in enumerate(sorted(note_files))}
+
+
+def list_notes() -> None:
+    """
+    Lists all notes found in the notes directory.
+
+    :return:
+    """
+    note_files = _get_notes()
+    [print(f"{idx}: {f}") for idx, f in note_files.items()]
+
+
+def open_note(idx: int) -> None:
+    """
+    Opens a note found on index idx.
+
+    :param idx: The index of the file to open.
+    :return:
+    :raises FileNotFoundError: If the file at the given index is not found.
+    """
+    note_files = _get_notes()
+
+    try:
+        run(note_files[idx])
+    except KeyError:
+        raise FileNotFoundError(f"The provided file with index {idx} doesn't exist.")
+
+
+def print_help() -> None:
+    """
+    Prints the script usage and exits.
+
+    :return:
+    """
+    print(
+        f"""
+    --- A Simple Notes taking application ---
+    Usage: notes [OPTIONS]
+
+    OPTIONS:
+    --help          Show this dialog
+    --list          Lists all the notes files in {NOTES_PATH}
+    --open <index>  Opens the file at index <index>
+    """
+    )
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    init()
+    if len(sys.argv) == 1:
+        run()
+
+    if "--help" in sys.argv:
+        print_help()
+
+    if "--list" in sys.argv:
+        list_notes()
+
+    if "--open" in sys.argv:
+        try:
+            open_note(int(sys.argv[2]))
+        except FileNotFoundError as ex:
+            print(str(ex))
+            sys.exit(1)
