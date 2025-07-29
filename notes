@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import subprocess
 import sys
 from datetime import date
@@ -9,7 +10,7 @@ HOME = Path.home()
 NOTES_PATH = Path(f"{HOME}/.notes")
 CURRENT_DATE = date.today().strftime("%Y-%m-%d")
 FILENAME = Path(f"{NOTES_PATH}/{CURRENT_DATE}.md")
-EDITOR = "vim"
+EDITOR = os.getenv("EDITOR", "hx")
 
 
 def init() -> None:
