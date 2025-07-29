@@ -29,7 +29,7 @@ def init() -> None:
         FILENAME.touch(mode=0o755)
 
 
-def run(filename: Path = None) -> None:
+def run(filename: Path | None = None) -> None:
     """
     Opens the given note file in the defined editor.
 
